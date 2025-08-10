@@ -12,7 +12,23 @@
           @answer-selected="handleAnswerSelected"
         />
         
-        <!-- Navigation buttons removed - auto progression enabled -->
+        <div class="navigation">
+          <button
+            v-if="currentStep > 0"
+            @click="previousQuestion"
+            class="btn btn-secondary"
+          >
+            ← Anterior
+          </button>
+          
+          <button
+            v-if="currentStep < questions.length - 1 && hasAnswer && currentStep !== questions.length - 1"
+            @click="nextQuestion"
+            class="btn btn-primary"
+          >
+            Siguiente →
+          </button>
+        </div>
       </div>
 
       <div v-else class="completion-screen">
@@ -138,14 +154,15 @@ async function loadQuestions() {
     },
     {
       id: '11',
-      text: '¿Si esta aplicación existiera, la recomendarías a otras personas?',
-      type: 'yes_no',
+      text: 'Si esta aplicación existiera, ¿la recomendarías a otras personas?',
+      type: 'multiple_choice',
+      options: ['Definitivamente sí', 'Probablemente sí', 'Tal vez', 'Probablemente no'],
       required: true,
       order: 11
     },
     {
       id: '12',
-      text: '¿Quieres salir conmigo?',
+      text: 'Y finalmente... ¿Quieres salir conmigo?',
       type: 'special',
       required: true,
       order: 12
@@ -222,7 +239,7 @@ async function handleAnswerSelected(answer: string) {
   // Auto advance to next question after short delay
   setTimeout(async () => {
     await nextQuestion()
-  }, 500)
+  }, 800)
 }
 
 async function nextQuestion() {

@@ -46,27 +46,7 @@
           </div>
         </div>
         
-        <div v-if="currentStep === questions.length - 1" class="special-question">
-          <div class="special-buttons-container">
-            <button
-              class="btn btn-yes btn-special"
-              :class="{ 'selected': currentAnswer === 'Sí' }"
-              @click="selectAnswer('Sí')"
-            >
-              Sí
-            </button>
-            <button
-              v-if="!noButtonMoved"
-              ref="noButton"
-              class="btn btn-no btn-special moving-no"
-              :style="noButtonStyle"
-              @click="moveAndHideNoButton"
-              @mouseenter="moveAndHideNoButton"
-            >
-              No
-            </button>
-          </div>
-        </div>
+        <!-- Special question buttons removed -->
       </div>
 
       <!-- Success Screen -->

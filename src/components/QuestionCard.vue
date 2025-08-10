@@ -8,8 +8,10 @@
         type="text"
         v-model="answer"
         @input="updateAnswer"
+        @blur="handleTextComplete"
+        @keypress.enter="handleTextComplete"
         class="text-input"
-        :placeholder="'Tu respuesta...'"
+        :placeholder="'Tu respuesta...' + (question.required ? ' (Presiona Enter cuando termines)' : '')"
         :required="question.required"
       />
     </div>
@@ -52,22 +54,26 @@
 
     <!-- Special Question -->
     <div v-else-if="question.type === 'special'" class="input-group">
-      <div class="special-buttons">
-        <button
-          class="btn btn-yes btn-special"
-          @click="selectOption('SI')"
-        >
-          ¡Sí! 💕
-        </button>
-        <button
-          ref="noButton"
-          class="btn btn-no btn-special moving-no"
-          :style="noButtonStyle"
-          @click="moveNoButton"
-          @mouseenter="moveNoButton"
-        >
-          No
-        </button>
+      <div 
+        class="option special-option"
+        :class="{ 'selected': answer === 'SI' }"
+        @click="selectOption('SI')"
+      >
+        <div class="option-circle">
+          <div v-if="answer === 'SI'" class="option-dot"></div>
+        </div>
+        <span>¡Sí! 💕</span>
+      </div>
+      <div 
+        v-if="!answer || answer !== 'SI'"
+        class="option special-option no-option"
+        :class="{ 'disappearing': noClicked }"
+        @click="handleNoClick"
+      >
+        <div class="option-circle">
+          <div v-if="answer === 'NO'" class="option-dot"></div>
+        </div>
+        <span>No</span>
       </div>
     </div>
   </div>
@@ -91,13 +97,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const answer = ref(props.modelValue || '')
-const noButton = ref<HTMLElement>()
-const noButtonPosition = ref({ x: 0, y: 0 })
-
-const noButtonStyle = computed(() => ({
-  transform: `translate(${noButtonPosition.value.x}px, ${noButtonPosition.value.y}px)`,
-  transition: 'transform 0.3s ease-out'
-}))
+const noClicked = ref(false)
 
 function updateAnswer() {
   emit('update:modelValue', answer.value)
@@ -105,37 +105,25 @@ function updateAnswer() {
 }
 
 function selectOption(option: string) {
-  if (props.question.type === 'special' && option === 'NO') {
-    return
-  }
-  
   answer.value = option
   updateAnswer()
 }
 
-function moveNoButton() {
-  if (props.question.type !== 'special') return
-  
-  const container = noButton.value?.parentElement
-  if (!container) return
-  
-  const containerRect = container.getBoundingClientRect()
-  const buttonRect = noButton.value!.getBoundingClientRect()
-  
-  const maxX = containerRect.width - buttonRect.width - 40
-  const maxY = containerRect.height - buttonRect.height - 40
-  
-  noButtonPosition.value = {
-    x: Math.random() * maxX - maxX / 2,
-    y: Math.random() * maxY - maxY / 2
+function handleNoClick() {
+  noClicked.value = true
+  // Hacer que desaparezca después de un momento
+  setTimeout(() => {
+    // La opción "No" desaparecerá debido al v-if en el template
+  }, 500)
+}
+
+function handleTextComplete() {
+  if (answer.value.trim()) {
+    emit('answer-selected', answer.value)
   }
 }
 
-onMounted(() => {
-  if (props.question.type === 'special') {
-    setTimeout(moveNoButton, 100)
-  }
-})
+// No need for onMounted anymore
 </script>
 
 <style scoped>
@@ -221,7 +209,7 @@ onMounted(() => {
   border-radius: 50%;
 }
 
-.yes-no-buttons, .special-buttons {
+.yes-no-buttons {
   display: flex;
   gap: 1rem;
   justify-content: center;
@@ -265,18 +253,26 @@ onMounted(() => {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.btn-special {
-  padding: 1rem 2.5rem;
+.special-option {
+  margin-bottom: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.special-option:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.special-option span {
   font-size: 1.125rem;
+  font-weight: 600;
 }
 
-.moving-no {
-  position: relative;
-  user-select: none;
-}
-
-.moving-no:hover {
-  background: #ef4444 !important;
+.no-option.disappearing {
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.5s ease-out;
 }
 
 @media (max-width: 640px) {
@@ -289,7 +285,7 @@ onMounted(() => {
     font-size: 1.25rem;
   }
   
-  .yes-no-buttons, .special-buttons {
+  .yes-no-buttons {
     flex-direction: column;
     gap: 0.75rem;
   }
