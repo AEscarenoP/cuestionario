@@ -1,0 +1,12 @@
+{
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "typescript.suggest.autoImports": true,
+  "vue.server.hybridMode": true,
+  "files.associations": {
+    "*.astro": "astro"
+  },
+  "emmet.includeLanguages": {
+    "astro": "html"
+  },
+  "astro.typescript.allowArbitraryAttributes": true
+}
